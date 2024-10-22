@@ -1,7 +1,8 @@
 import sys
 import serial
 import serial.tools.list_ports
-from PyQt6 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore, QtGui
+
 
 class SerialApp(QtWidgets.QWidget):
     def __init__(self):
@@ -61,8 +62,19 @@ class SerialApp(QtWidgets.QWidget):
         else:
             selected_port = self.port_combobox.currentText()
             selected_baudrate = int(self.baudrate_combobox.currentText())  # Получаем выбранный baudrate
-            self.serial_port = serial.Serial(selected_port, baudrate=selected_baudrate, timeout=1)
-            self.open_button.setText('Close Port')
+
+            try:
+                self.serial_port = serial.Serial(selected_port, baudrate=selected_baudrate, timeout=1)
+                if self.serial_port.is_open:
+                    self.output_message("Port opened successfully!", QtGui.QColor('green'))
+                    self.open_button.setText('Close Port')
+            except serial.SerialException as e:
+                self.output_message(f"Error: {str(e)}", QtGui.QColor('red'))
+
+    def output_message(self, message, color):
+        self.output_area.setTextColor(color)
+        self.output_area.append(message)
+        self.output_area.setTextColor(QtGui.QColor('black'))  # Reset to default color
 
     def send_data(self):
         if self.serial_port and self.serial_port.is_open:
@@ -81,6 +93,7 @@ class SerialApp(QtWidgets.QWidget):
         if self.serial_port and self.serial_port.is_open:
             self.serial_port.close()
         event.accept()
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
