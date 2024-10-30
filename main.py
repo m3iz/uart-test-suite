@@ -130,7 +130,24 @@ class SerialApp(QtWidgets.QWidget):
         if self.serial_port and self.serial_port.is_open:
             if self.serial_port.in_waiting > 0:
                 data = self.serial_port.read(self.serial_port.in_waiting).decode()
-                self.output_area.append(f'Received: {data}')
+                self.process_received_data(data)
+
+    def process_received_data(self, data):
+        """Process the received GPIO states and format them for display."""
+        # Check if the data length is correct for GP2 to GP5 (4 states)
+        if len(data) == 4 and all(c in '01' for c in data):
+            formatted_states = []
+
+            # Map the states to GPIO pins (GP2 to GP5)
+            for i in range(len(data)):
+                pin_value = "High" if data[i] == '1' else "Low"
+                formatted_states.append(f'GP{i + 2}: {pin_value}')
+
+            # Join formatted states into a single string
+            output_string = ', '.join(formatted_states)
+            self.output_area.append(f'Received GPIO States: {output_string}')
+        else:
+            self.output_area.append(f'Invalid data format: {data}')
 
     def closeEvent(self, event):
         if self.serial_port and self.serial_port.is_open:
