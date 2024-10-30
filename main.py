@@ -65,6 +65,7 @@ class SerialApp(QtWidgets.QWidget):
 
         # Output text area
         self.output_area = QtWidgets.QTextEdit()
+        self.output_area.setReadOnly(True)  # Установить поле на режим только для чтения
         layout.addWidget(self.output_area)
 
         self.setLayout(layout)
@@ -119,12 +120,13 @@ class SerialApp(QtWidgets.QWidget):
     def output_message(self, message, color):
         self.output_area.setTextColor(color)
         self.output_area.append(message)
-        self.output_area.setTextColor(QtGui.QColor('black'))  # Reset to default color
+        self.output_area.setTextColor(QtGui.QColor('black'))  # Сброс цвета по умолчанию
+        self.output_area.ensureCursorVisible()  # Прокручиваем до последнего сообщения
 
     def send_data(self, data):
         if self.serial_port and self.serial_port.is_open:
             self.serial_port.write(data.encode())
-            self.output_area.append(f'Sent: {data.strip()}')
+            self.output_message(f'Sent: {data.strip()}', QtGui.QColor('black'))
 
     def read_data(self):
         if self.serial_port and self.serial_port.is_open:
@@ -134,20 +136,21 @@ class SerialApp(QtWidgets.QWidget):
 
     def process_received_data(self, data):
         """Process the received GPIO states and format them for display."""
-        # Check if the data length is correct for GP2 to GP5 (4 states)
+        # Проверяем, что длина данных правильная (4 состояния)
         if len(data) == 4 and all(c in '01' for c in data):
             formatted_states = []
 
-            # Map the states to GPIO pins (GP2 to GP5)
+            # Привязываем состояния к ножкам GPIO (GP2-GP5)
             for i in range(len(data)):
                 pin_value = "High" if data[i] == '1' else "Low"
                 formatted_states.append(f'GP{i + 2}: {pin_value}')
 
-            # Join formatted states into a single string
+            # Объединяем отформатированные состояния в одну строку
             output_string = ', '.join(formatted_states)
-            self.output_area.append(f'Received GPIO States: {output_string}')
+            self.output_message(f'Received GPIO States: {output_string}',
+                                QtGui.QColor('black'))  # Используем новый метод
         else:
-            self.output_area.append(f'Invalid data format: {data}')
+            self.output_message(f'Recieved: {data}', QtGui.QColor('Green'))  # Используем новый метод
 
     def closeEvent(self, event):
         if self.serial_port and self.serial_port.is_open:
