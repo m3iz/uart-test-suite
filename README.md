@@ -76,6 +76,10 @@ Commands sent to the microcontroller are processed as follows:
 - **Set GPIO Low:**
   - Sends commands like `X`, where `X` is the pin number minus 4 to set it low.
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
+
 ## Troubleshooting
 
 - Ensure the correct COM port and baud rate are selected.
